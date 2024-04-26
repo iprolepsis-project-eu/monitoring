@@ -1,0 +1,70 @@
+version: '3.8'
+
+services:
+  # Generate fake traces...
+  k6-tracing:
+    image: ghcr.io/grafana/xk6-client-tracing:v0.0.2
+    container_name: fake_tracing
+    environment:
+      - ENDPOINT=otel-collector:4317
+    restart: always
+    depends_on:
+      - otel-collector
+
+# Monitor containers
+  cadvisor:
+    container_name: cadvisor
+    image: gcr.io/cadvisor/cadvisor:latest
+    ports:
+      - "8080:8080"
+    volumes: 
+      - /var/run:/var/run:ro
+      - /sys:/sys:ro
+      - /var/lib/docker/:/var/lib/docker:ro
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - /etc/machine-id:/etc/machine-id:ro
+      - /var/lib/dbus/machine-id:/var/lib/dbus/machine-id:ro
+    privileged: true
+    devices: 
+      - /dev/kmsg:/dev/kmsg
+    labels:
+      org.label-schema.group: "main_machine_monitoring"
+    restart: unless-stopped
+
+  node-exporter:
+    image: quay.io/prometheus/node-exporter:latest
+    container_name: node_exporter
+    volumes:
+      - /proc:/host/proc:ro
+      - /sys:/host/sys:ro
+      - /:/rootfs:ro
+      - /:/host:ro
+    command: 
+      - '--path.rootfs=/host'
+      - '--path.procfs=/host/proc' 
+      - '--path.sysfs=/host/sys'
+      - --collector.filesystem.ignored-mount-points
+      - "^/(sys|proc|dev|host|etc|rootfs/var/lib/docker/containers|rootfs/var/lib/docker/overlay2|rootfs/run/docker/netns|rootfs/var/lib/docker/aufs)($$|/)"
+    ports:
+      - 9100:9100
+    restart: always
+    privileged: true
+
+
+  otel-collector:
+    image: otel/opentelemetry-collector-contrib:latest
+    container_name: main_otel_collector
+    command: ["--config=/etc/otel-collector-config.yaml"]
+    volumes:
+       - ./configs/otel-collector-config.yaml:/etc/otel-collector-config.yaml
+    ports:
+      - "13133:13133" # health_check extension
+      - "4317:4317" # OTLP receiver
+    restart: unless-stopped
+
+
+
+
+  
+
+
