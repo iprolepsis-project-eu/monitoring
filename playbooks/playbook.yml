@@ -1,0 +1,17 @@
+---
+- hosts: localhost
+  connection: local
+  become: yes
+  vars:
+    server_ip: "{{ server_ip }}"
+    remote_dir: "{{ remote_dir }}"
+  
+  tasks:
+    - name: Ensure monitoring directory exists
+      file:
+        path: "{{ remote_dir }}/playbooks/monitoring/files"
+        state: directory
+        mode: '0755'
+
+  roles:
+    - monitoring
