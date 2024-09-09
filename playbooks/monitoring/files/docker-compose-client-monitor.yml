@@ -8,6 +8,35 @@ services:
     restart: always
     depends_on:
       - otel-collector
+    
+    logging: 
+      driver: loki
+      options:
+        loki-url: "http://209.97.142.146:3100/loki/api/v1/push"
+        loki-external-labels: "job=fake_tracing,environment=production,host=client-server" # ${HOSTNAME}"
+
+  # Test logger service
+#  test-logger:
+#    image: busybox
+#    container_name: test_logger
+#    command: /bin/sh -c "while true; do echo 'Test log entry from first_test at $$(date)'; sleep 5; done"
+#    logging:
+#      driver: loki
+#      options:
+#        loki-url: "http://209.97.142.146:3100/loki/api/v1/push"
+#        loki-external-labels: "job=test-logger,environment=production,host=first_test" # ${HOSTNAME}"
+
+  version_logger:
+    image: busybox
+    container_name: version_logger
+    #command: /bin/sh -c "while true; do echo 'Test log entry from first_test at $$(date)'; sleep 5; done"
+    command: /bin/sh -c "while true; do echo 'k6-tracing version: $(docker run --rm ghcr.io/grafana/xk6-client-tracing:v0.0.2 k6 version)'; sleep 10; done"
+    logging:
+      driver: loki
+      options:
+        loki-url: "http://209.97.142.146:3100/loki/api/v1/push"
+        loki-external-labels: "job=version_logger,environment=production,host=client-server"
+
 
 # Monitor containers
   cadvisor:
@@ -58,6 +87,19 @@ services:
       - "13133:13133" # health_check extension
       - "4317:4317" # OTLP receiver
     restart: unless-stopped
+
+#  promtail:
+ #   image: grafana/promtail:latest
+  #  container_name: promtail
+   # volumes:
+    #  - /var/log:/var/log
+     # - ./configs/promtail-config.yaml:/etc/promtail/config.yml
+#    command: -config.file=/etc/promtail/config.yml
+ #   ports:
+  #    - "9080:9080"
+   # restart: unless-stopped
+
+
 
  # otel-collector:
  #   image: otel/opentelemetry-collector-contrib:latest
