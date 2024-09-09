@@ -10,7 +10,7 @@ receivers:
       - job_name: 'main-otel-collector-scraper'
         scrape_interval: 10s
         static_configs:
-        - targets: ['0.0.0.0:8888', '<your-ip>:8080', '<your-ip>:9100']
+        - targets: ['0.0.0.0:8888', 'SERVER_IP:8080', 'SERVER_IP:9100']
 
 processors:
   batch:
@@ -21,12 +21,12 @@ extensions:
 
 exporters:
   otlp:
-    endpoint: http://5.75.190.25:4317
+    endpoint: http://209.97.142.146:4317
     tls:
       insecure: true
 
 service:
-  pipelines:
+  pipelines:                                      
     traces:
       receivers: [otlp]
       exporters: [otlp]
