@@ -6,14 +6,14 @@ positions:
   filename: /tmp/positions.yaml
 
 clients:
-  - url: http://209.97.142.146:3100/loki/api/v1/push
+  - url: http://5.75.190.25:3100/loki/api/v1/push
 
 scrape_configs:
   - job_name: system  # Indented one level further
     static_configs:
       - targets: [ localhost ]
         labels:
-          hostname: "209.97.142.146"
+          hostname: "5.75.190.25"
           job: varlogs
           __path__: /var/log/*log
   - job_name: nginx
