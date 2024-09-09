@@ -2,7 +2,9 @@ receivers:
   otlp:
     protocols:
       grpc:
+        endpoint: 0.0.0.0:4317
       http:
+        endpoint: 0.0.0.0:4318
 
   prometheus:
     config:
@@ -21,7 +23,7 @@ extensions:
 
 exporters:
   otlp:
-    endpoint: http://5.75.190.25:4317
+    endpoint: http://209.97.142.146:4317 
     tls:
       insecure: true
 
