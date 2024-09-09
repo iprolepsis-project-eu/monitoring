@@ -5,6 +5,7 @@
   vars:
     server_ip: "{{ server_ip }}"
     remote_dir: "{{ remote_dir }}"
+    is_monitoring_server: "{{ is_monitoring_server | default(false) }}"
   
   tasks:
     - name: Ensure monitoring directory exists
