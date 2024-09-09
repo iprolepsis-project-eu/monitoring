@@ -2,7 +2,9 @@ receivers:
   otlp:
     protocols:
       grpc:
+        endpoint: 0.0.0.0:4317
       http:
+        endpoint: 0.0.0.0:4318
 
   prometheus:
     config:
@@ -10,7 +12,7 @@ receivers:
       - job_name: 'main-otel-collector-scraper'
         scrape_interval: 10s
         static_configs:
-          - targets: ['0.0.0.0:8888', '5.75.190.25:8080', '5.75.190.25:9100']
+          - targets: ['0.0.0.0:8888', '209.97.142.146:8080', '209.97.142.146:9100']
 
 processors:
   batch:
