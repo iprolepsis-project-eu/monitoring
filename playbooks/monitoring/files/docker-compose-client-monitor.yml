@@ -12,7 +12,7 @@ services:
     logging: 
       driver: loki
       options:
-        loki-url: "http://209.97.142.146:3100/loki/api/v1/push"
+        loki-url: "http:/5.75.190.25:3100/loki/api/v1/push"
         loki-external-labels: "job=fake_tracing,environment=production,host=client-server" # ${HOSTNAME}"
 
   # Test logger service
@@ -23,7 +23,7 @@ services:
 #    logging:
 #      driver: loki
 #      options:
-#        loki-url: "http://209.97.142.146:3100/loki/api/v1/push"
+#        loki-url: "http://5.75.190.25:3100/loki/api/v1/push"
 #        loki-external-labels: "job=test-logger,environment=production,host=first_test" # ${HOSTNAME}"
 
   version_logger:
@@ -34,7 +34,7 @@ services:
     logging:
       driver: loki
       options:
-        loki-url: "http://209.97.142.146:3100/loki/api/v1/push"
+        loki-url: "http://5.75.190.25:3100/loki/api/v1/push"
         loki-external-labels: "job=version_logger,environment=production,host=client-server"
 
 
