@@ -16,12 +16,6 @@
       shell: sh /tmp/get-docker.sh
       register: docker_install
 
-    #- name: Add current user to docker group
-    #  user:
-    #    name: "{{ ansible_user }}"
-    #    groups: docker
-    #    append: yes
-
     - name: Start Docker service
       systemd:
         name: docker
@@ -35,6 +29,7 @@
   register: compose_check
   ignore_errors: yes
 
+#keep both of the install dockers here
 - name: Install Docker Compose plugin if not present
   get_url:
     url: "https://github.com/docker/compose/releases/download/v2.17.2/docker-compose-linux-x86_64"
@@ -48,17 +43,26 @@
     state: directory
     mode: '0755'
 
-- name: Copy Docker Compose file
+#- name: Copy Docker Compose file for monitoring server
+#  copy:
+#    src: docker-compose.yml
+#    dest: "docker compose -f {{ remote_dir }}/docker-compose.yml up -d"
+#    mode: '0644'
+#  when: is_monitoring_server | bool
+
+- name: Copy Docker Compose file for client server
   copy:
     src: docker-compose-client-monitor.yml
     dest: "{{ remote_dir }}/playbooks/monitoring/files/docker-compose-client-monitor.yml"
     mode: '0644'
+  when: not is_monitoring_server | bool
 
 - name: Copy OTEL collector config
   copy:
     src: configs/otel-collector-config.yaml
     dest: "{{ remote_dir }}/playbooks/monitoring/files/configs/otel-collector-config.yaml"
     mode: '0644'
+  when: not is_monitoring_server | bool
 
 - name: Replace server_ip in configuration
   replace:
@@ -66,10 +70,16 @@
     regexp: 'server_ip_swap'
     replace: '{{ server_ip }}'
 
-- name: Start monitoring services
-  shell: "docker compose -f {{ remote_dir }}/playbooks/monitoring/files/docker-compose-client-monitor.yml up -d || docker-compose -f {{ remote_dir }}/playbooks/monitoring/files/docker-compose-client-monitor.yml up -d"
+- name: Start monitoring services on monitoring server
+  shell: "docker compose -f {{ remote_dir }}/docker-compose.yml up -d"
   become: yes
+  when: is_monitoring_server | bool
+
+- name: Start monitoring services on client server
+  shell: "docker compose -f {{ remote_dir }}/playbooks/monitoring/files/docker-compose-client-monitor.yml up -d"
+  become: yes
+  when: not is_monitoring_server | bool
 
 - name: Print Monitoring Service Start Success
   debug:
-    msg: "Monitoring services started successfully."
+    msg: "Monitoring services started successfully on {{ 'monitoring' if is_monitoring_server else 'client' }} server."
