@@ -19,7 +19,7 @@ Update the `<your-ip>` placeholder in the `client/configs/otel-collector-config`
 To test the monitoring setup, navigate to the directory containing the `docker-compose-client-monitor.yml` file and execute the following command:
 
 ```bash
-docker-compose -f docker-compose-client-monitor.yml up -d
+docker compose -f docker-compose-client-monitor.yml up -d
 ```
 
 This command will start the monitoring containers in detached mode on the client server.
