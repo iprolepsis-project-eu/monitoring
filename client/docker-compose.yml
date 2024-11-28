@@ -41,6 +41,7 @@ services:
       - /var/lib/docker/:/var/lib/docker:ro
       - /dev/disk/:/dev/disk:ro
       - /etc/machine-id:/etc/machine-id:ro
+      - /var/lib/dbus/machine-id:/var/lib/dbus/machine-id:ro
   
   #
   promtail:
@@ -50,7 +51,12 @@ services:
     container_name: plux-promtail
     depends_on:
       - node-exporter
-      - cadvisor 
+      - cadvisor
+    healthcheck:
+      test: wget --no-verbose --tries=1 --spider http://localhost:9080 || exit 1
+      interval: 30s
+      timeout: 10s
+      retries: 3  
     restart: unless-stopped
     # ports:
     #   - 9080:9080
@@ -73,14 +79,31 @@ services:
     depends_on:
       - node-exporter
       - cadvisor
+    healthcheck:
+      test: wget --no-verbose --tries=1 --spider http://localhost:13133 || exit 1
+      interval: 30s
+      timeout: 10s
+      retries: 3
     restart: unless-stopped
     ports:
       - "13133:13133"
       - "4317:4317" # OTLP receiver
       - "4318:4318" # OTLP receiver
     volumes:
-      - ./configs/otel-collector-config-ainigma.yaml:/etc/otel-collector-config-ainigma.yaml
-    command: ["--config=/etc/otel-collector-config-ainigma.yaml"]
+      - ./configs/otel-collector-config.yaml:/etc/otel-collector-config.yaml
+    command: ["--config=/etc/otel-collector-config.yaml"]
+
+  #
+  mongodb-exporter:
+    image: percona/mongodb_exporter:0.40
+    container_name: mongodb-exporter
+    restart: unless-stopped
+    ports:
+      - 9216:9216
+    command:
+      - "--mongodb.uri=mongodb://192.168.1.21:27017"
+      - "--compatible-mode"
+      - "--collect-all"
 
   redis-exporter:
     image: oliver006/redis_exporter:v1.66.0
@@ -89,7 +112,10 @@ services:
     ports:
       - "9121:9121"
     command:
-      - "--redis.addr=redis://${HOST_PUBLIC_IP}:6379"
+      - "--redis.addr=redis://192.168.1.21:6379"
         
 volumes:
   promtail_positions:
+ 
+    
+
