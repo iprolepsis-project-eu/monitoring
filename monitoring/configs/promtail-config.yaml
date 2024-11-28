@@ -6,7 +6,7 @@ positions:
   filename: /tmp/positions.yaml
 
 clients:
-  - url: http://${SERVER_MONITORING_PUBLIC_IP}:3100/loki/api/v1/push
+  - url: http://loki:3100/loki/api/v1/push
     external_labels:
       host: ${HOST_NAME}
       ip_address: ${HOST_PUBLIC_IP}
@@ -23,4 +23,4 @@ scrape_configs:
         target_label: container
       - source_labels: ['__meta_docker_container_log_stream']
         target_label: stream
-
+  

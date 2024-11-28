@@ -1,0 +1,33 @@
+scrape_configs:
+  - job_name: 'loki'
+    scrape_interval: 15s
+    static_configs:
+      - targets: ['loki:3100']
+
+  - job_name: 'promtail'
+    scrape_interval: 15s
+    static_configs:
+      - targets: ['promtail:9080']
+      
+  # - job_name: 'node-exporter'
+  #   scrape_interval: 10s
+  #   static_configs:
+  #     - targets: ['node-exporter:9100']
+  #   relabel_configs:
+  #     - source_labels: [__address__]
+  #       regex: 'node-exporter:9100'
+  #       target_label: instance
+  #       replacement: '${HOSTNAME}'
+            
+  # - job_name: 'cadvisor'
+  #   scrape_interval: 10s
+  #   static_configs:
+  #     - targets: ['cadvisor:8080']
+  #   relabel_configs:
+  #     - source_labels: [__address__]
+  #       regex: 'cadvisor:8080'
+  #       target_label: instance
+  #       replacement: '${HOSTNAME}'
+
+rule_files:
+  - /etc/prometheus/alerts.yaml  # Specify the alert rules file
