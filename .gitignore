@@ -1,1 +1,8 @@
+client/.env
+client/scripts
+monitoring/.env
+monitoring/scripts
+monitoring/playbooks
+loki
 tempo-data
+client_ips.json
