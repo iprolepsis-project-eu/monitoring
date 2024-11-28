@@ -1,0 +1,190 @@
+services:
+
+# Metrics collection
+  cadvisor:
+    image: gcr.io/cadvisor/cadvisor:v0.49.1
+    container_name: cadvisor
+    healthcheck:
+      test: wget --no-verbose --tries=1 --spider http://localhost:8080 || exit 1
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    restart: unless-stopped
+    #ports:
+    #  - "8080:8080"  # Expose the cAdvisor web interface
+    volumes:
+      - /:/rootfs:ro
+      - /var/run:/var/run:ro
+      - /sys:/sys:ro
+      - /var/lib/docker/:/var/lib/docker:ro
+      - /dev/disk/:/dev/disk:ro
+      - /etc/machine-id:/etc/machine-id:ro
+      #- /var/lib/dbus/machine-id:/var/lib/dbus/machine-id:ro
+
+  node-exporter:
+    image: quay.io/prometheus/node-exporter:v1.8.2
+    container_name: node-exporter
+    healthcheck:
+      test: wget --no-verbose --tries=1 --spider http://localhost:9100 || exit 1
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    restart: unless-stopped
+    #ports:
+    #  - "9100:9100"   # Expose the node-exporter web interface
+    volumes:
+      - /proc:/host/proc:ro
+      - /sys:/host/sys:ro
+      - /:/rootfs:ro
+      - /:/host:ro
+    command: 
+      - '--path.rootfs=/host'
+      - '--path.procfs=/host/proc' 
+      - '--path.sysfs=/host/sys'
+
+
+# Scraping and storing metrics
+  otel-collector:
+    image: otel/opentelemetry-collector-contrib:0.113.0
+    env_file:
+      - .env
+    container_name: otel-collector
+    depends_on:
+      - node-exporter
+      - cadvisor
+    healthcheck:
+      test: wget --no-verbose --tries=1 --spider http://localhost:13133 || exit 1
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    restart: unless-stopped
+    ports:
+      - "4317:4317"  # OTLP gRPC receiver
+      - "4318:4318"  # OTLP HTTP receiver
+    volumes:
+       - ./configs/otel-collector-config.yaml:/etc/otel-collector-config.yaml
+    command: ["--config=/etc/otel-collector-config.yaml"]
+
+  prometheus:
+    image: prom/prometheus:v3.0.0
+    env_file:
+      - .env
+    container_name: prometheus
+    depends_on:
+      - node-exporter
+      - cadvisor
+    healthcheck:
+      test: wget --no-verbose --tries=1 --spider http://localhost:9090/-/healthy || exit 1
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    restart: unless-stopped
+    ports:
+      - "9090:9090"
+    command:
+      - --config.file=/etc/prometheus.yaml
+      - --web.enable-remote-write-receiver
+      - --enable-feature=native-histograms
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/usr/share/prometheus/console_libraries'
+      - '--web.console.templates=/usr/share/prometheus/consoles'
+    volumes:
+      - ./configs/prometheus.yaml:/etc/prometheus.yaml
+      - ./configs/alerts.yaml:/etc/prometheus/alerts.yaml
+      - prometheus_data:/prometheus
+    
+
+# Logging
+  loki:
+    image: grafana/loki:2.9.4
+    container_name: loki
+    healthcheck:
+      test: wget --no-verbose --tries=1 --spider http://localhost:3100/ready || exit 1
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    restart: unless-stopped
+    ports:
+      - "3100:3100"
+    volumes: 
+      - ./configs/loki-config.yaml:/etc/loki/loki-config.yaml
+      - loki_data:/loki
+    command: 
+      - "-config.file=/etc/loki/loki-config.yaml"
+      - "-config.expand-env=true"
+
+  promtail:
+    image: grafana/promtail:2.9.4
+    env_file:
+      - .env
+    container_name: promtail
+    healthcheck:
+      test: wget --no-verbose --tries=1 --spider http://localhost:9080/ || exit 1
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    restart: unless-stopped
+    depends_on:
+      - loki
+    volumes:
+      - /var/log:/var/log
+      - ./configs/promtail-config.yaml:/etc/promtail/promtail-config.yaml
+      - promtail_positions:/tmp
+      - /var/run/docker.sock:/var/run/docker.sock 
+    command: 
+      - "-config.file=/etc/promtail/promtail-config.yaml"
+      - "-config.expand-env=true"
+
+# Tracing
+  tempo:
+    image: grafana/tempo:main-fe44474
+    container_name: tempo
+    healthcheck:
+      test: wget --no-verbose --tries=1 --spider http://localhost:3200 || exit 1
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    restart: unless-stopped
+    ports:
+      - "3200:3200"
+      - "4327:4317"  # OTLP gRPC receiver
+      - "4328:4318"  # OTLP HTTP receiver
+    volumes:
+      - ./configs/tempo.yaml:/etc/tempo.yaml
+      - ./tempo_data:/tmp/tempo
+    command: [ "-config.file=/etc/tempo.yaml" ]
+
+# Visualization
+  grafana:
+    image: grafana/grafana:10.1.1
+    container_name: grafana
+    depends_on:
+      - loki
+      - prometheus
+      - tempo
+    healthcheck:
+      test: wget --no-verbose --tries=1 --spider http://localhost:3000/api/health || exit 1
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    restart: unless-stopped
+    ports:
+     - "3000:3000"
+    volumes:
+      - ./configs/grafana/dashboards:/var/lib/grafana/dashboards
+      - ./configs/grafana/provisioning/dashboards:/etc/grafana/provisioning/dashboards
+      - ./configs/grafana/provisioning/datasources:/etc/grafana/provisioning/datasources
+      - grafana_data:/var/lib/grafana
+    environment:
+      - GF_AUTH_ANONYMOUS_ENABLED=true
+      - GF_AUTH_ANONYMOUS_ORG_ROLE=Admin
+      - GF_AUTH_DISABLE_LOGIN_FORM=true
+      - GF_FEATURE_TOGGLES_ENABLE=traceqlEditor
+
+# Volumes
+volumes:
+  loki_data:
+  promtail_positions:
+  prometheus_data:
+  #tempo_data:
+  grafana_data:
