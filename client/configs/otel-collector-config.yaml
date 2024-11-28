@@ -2,38 +2,79 @@ receivers:
   otlp:
     protocols:
       grpc:
+        endpoint: 0.0.0.0:4317
       http:
+        endpoint: 0.0.0.0:4318
 
   prometheus:
     config:
       scrape_configs:
-      - job_name: 'main-otel-collector-scraper'
+      - job_name: 'node-exporter'
         scrape_interval: 10s
         static_configs:
-        - targets: ['0.0.0.0:8888', 'SERVER_IP:8080', 'SERVER_IP:9100']
+          - targets: ['node-exporter:9100']
+        relabel_configs:
+          - source_labels: [__address__]
+            regex: 'node-exporter:9100'
+            target_label: instance
+            replacement: '${HOST_NAME}'
+            
+      - job_name: 'cadvisor'
+        scrape_interval: 10s
+        static_configs:
+          - targets: ['cadvisor:8080']
+        relabel_configs:
+          - source_labels: [__address__]
+            regex: 'cadvisor:8080'
+            target_label: instance
+            replacement: '${HOST_NAME}'
 
+      - job_name: 'mongodb'
+        scrape_interval: 10s
+        static_configs:
+          - targets: ['mongodb-exporter:9216']
+        relabel_configs:
+          - source_labels: [__address__]
+            regex: 'mongodb-exporter:9216'
+            target_label: instance
+            replacement: '${HOST_NAME}'
+
+      - job_name: 'redis'
+        scrape_interval: 10s
+        static_configs:
+        - targets: ['redis-exporter:9121']
+        relabel_configs:
+          - source_labels: [__address__]
+            regex: 'redis-exporter:9121'
+            target_label: instance
+            replacement: '${HOST_NAME}'
+            
 processors:
   batch:
-    timeout: "1s"
-
-extensions:
-  health_check:
-
+    timeout: 10s
+    
 exporters:
   otlp:
-    endpoint: http://5.75.190.25:4317
+    endpoint: ${SERVER_MONITORING_PUBLIC_IP}:4317
     tls:
       insecure: true
+  
+  debug:
+      
+extensions:
+ health_check:
+ pprof:
+ zpages:
 
 service:
-  pipelines:                                      
-    traces:
-      receivers: [otlp]
-      exporters: [otlp]
-
+  extensions: [health_check, pprof, zpages]
+  pipelines:
     metrics:
       receivers: [prometheus]
+      processors: [batch]
       exporters: [otlp]
-
-  extensions: [health_check]
     
+    traces:
+      receivers: [otlp]
+      processors: [batch]
+      exporters: [otlp, debug]
