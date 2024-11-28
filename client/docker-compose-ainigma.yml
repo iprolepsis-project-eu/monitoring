@@ -1,0 +1,95 @@
+services:
+
+  #
+  node-exporter:
+    image: quay.io/prometheus/node-exporter:v1.8.2
+    container_name: plux-node-exporter
+    healthcheck:
+      test: wget --no-verbose --tries=1 --spider http://localhost:9100 || exit 1
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    restart: unless-stopped
+    ports:
+      - 9100:9100
+    volumes:
+      - /proc:/host/proc:ro
+      - /sys:/host/sys:ro
+      - /:/rootfs:ro
+      - /:/host:ro
+    command: 
+      - '--path.rootfs=/host'
+      - '--path.procfs=/host/proc' 
+      - '--path.sysfs=/host/sys'
+      
+  #
+  cadvisor:
+    image: gcr.io/cadvisor/cadvisor:v0.49.1
+    container_name: plux-cadvisor
+    healthcheck:
+      test: wget --no-verbose --tries=1 --spider http://localhost:8080 || exit 1
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    volumes:
+      - /:/rootfs:ro
+      - /var/run:/var/run:ro
+      - /sys:/sys:ro
+      - /var/lib/docker/:/var/lib/docker:ro
+      - /dev/disk/:/dev/disk:ro
+      - /etc/machine-id:/etc/machine-id:ro
+  
+  #
+  promtail:
+    image: grafana/promtail:2.9.4
+    env_file:
+      - .env
+    container_name: plux-promtail
+    depends_on:
+      - node-exporter
+      - cadvisor 
+    restart: unless-stopped
+    # ports:
+    #   - 9080:9080
+    volumes:
+      - /var/log:/var/log:ro
+      - ./configs/promtail-config.yaml:/etc/promtail/promtail.yaml
+      - promtail_positions:/tmp
+      - /var/run/docker.sock:/var/run/docker.sock
+    command: 
+      - "-config.file=/etc/promtail/promtail.yaml"
+      - "-config.expand-env=true"
+
+  
+  #
+  otel-collector:
+    image: otel/opentelemetry-collector-contrib:0.113.0
+    env_file:
+      - .env
+    container_name: plux-otel-collector
+    depends_on:
+      - node-exporter
+      - cadvisor
+    restart: unless-stopped
+    ports:
+      - "13133:13133"
+      - "4317:4317" # OTLP receiver
+      - "4318:4318" # OTLP receiver
+    volumes:
+      - ./configs/otel-collector-config.yaml:/etc/otel-collector-config.yaml
+    command: ["--config=/etc/otel-collector-config.yaml"]
+
+  redis-exporter:
+    image: oliver006/redis_exporter:v1.66.0
+    container_name: redis-exporter
+    restart: unless-stopped
+    ports:
+      - "9121:9121"
+    command:
+      - "--redis.addr=redis://${HOST_PUBLIC_IP}:6379"
+        
+volumes:
+  promtail_positions:
