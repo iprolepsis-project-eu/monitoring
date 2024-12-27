@@ -90,30 +90,10 @@ services:
       - "4317:4317" # OTLP receiver
       - "4318:4318" # OTLP receiver
     volumes:
-      - ./configs/otel-collector-config.yaml:/etc/otel-collector-config.yaml
-    command: ["--config=/etc/otel-collector-config.yaml"]
+      - ./configs/otel-collector-config-nginx.yaml:/etc/otel-collector-config-nginx.yaml
+    command: ["--config=/etc/otel-collector-config-nginx.yaml"]
 
   #
-  mongodb-exporter:
-    image: percona/mongodb_exporter:0.40
-    container_name: mongodb-exporter
-    restart: unless-stopped
-    ports:
-      - 9216:9216
-    command:
-      - "--mongodb.uri=mongodb://${HOST_PUBLIC_IP}:27017"
-      - "--compatible-mode"
-      - "--collect-all"
-
-  redis-exporter:
-    image: oliver006/redis_exporter:v1.66.0
-    container_name: redis-exporter
-    restart: unless-stopped
-    ports:
-      - "9121:9121"
-    command:
-      - "--redis.addr=redis://${HOST_PUBLIC_IP}:6379"
-
   nginx-exporter:
     image: nginx/nginx-prometheus-exporter:1.3.0
     container_name: nginx-exporter
