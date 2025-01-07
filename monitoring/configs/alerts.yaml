@@ -108,3 +108,12 @@ groups:
     annotations:
       summary: 'Application Error Rate Alert for {{ $labels.job }} on {{ $labels.instance }}'
       description: 'Error rate for {{ $labels.job }} on {{ $labels.instance }} is {{ $value | printf "%.2f" }}% of requests over the last 5 minutes'
+
+  - alert: ClientDown
+    expr: up == 0
+    for: 1m
+    labels:
+      severity: critical
+    annotations:
+      summary: "Client {{ $labels.instance }} is down"
+      description: "Prometheus target '{{ $labels.instance }}' has been down for more than 1 minute."
