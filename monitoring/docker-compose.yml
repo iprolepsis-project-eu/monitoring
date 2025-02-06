@@ -91,7 +91,7 @@ services:
     volumes:
       - ./configs/prometheus.yaml:/etc/prometheus.yaml
       - ./configs/alerts.yaml:/etc/prometheus/alerts.yaml
-      - prometheus_data:/prometheus
+      - ./data/prometheus_data:/prometheus
     
 
 # Logging
@@ -108,7 +108,7 @@ services:
       - "3100:3100"
     volumes: 
       - ./configs/loki-config.yaml:/etc/loki/loki-config.yaml
-      - loki_data:/loki
+      - ./data/loki_data:/loki
     command: 
       - "-config.file=/etc/loki/loki-config.yaml"
       - "-config.expand-env=true"
@@ -129,7 +129,7 @@ services:
     volumes:
       - /var/log:/var/log
       - ./configs/promtail-config.yaml:/etc/promtail/promtail-config.yaml
-      - promtail_positions:/tmp
+      - ./data/promtail_positions:/tmp
       - /var/run/docker.sock:/var/run/docker.sock 
     command: 
       - "-config.file=/etc/promtail/promtail-config.yaml"
@@ -151,7 +151,7 @@ services:
       - "4328:4318"  # OTLP HTTP receiver
     volumes:
       - ./configs/tempo.yaml:/etc/tempo.yaml
-      - ./tempo_data:/tmp/tempo
+      - ./data/tempo_data:/tmp/tempo
     command: [ "-config.file=/etc/tempo.yaml" ]
 
 # Visualization
@@ -174,17 +174,9 @@ services:
       - ./configs/grafana/dashboards:/var/lib/grafana/dashboards
       - ./configs/grafana/provisioning/dashboards:/etc/grafana/provisioning/dashboards
       - ./configs/grafana/provisioning/datasources:/etc/grafana/provisioning/datasources
-      - grafana_data:/var/lib/grafana
+      - ./data/grafana_data:/var/lib/grafana
     environment:
       - GF_AUTH_ANONYMOUS_ENABLED=true
       - GF_AUTH_ANONYMOUS_ORG_ROLE=Admin
       - GF_AUTH_DISABLE_LOGIN_FORM=true
       - GF_FEATURE_TOGGLES_ENABLE=traceqlEditor
-
-# Volumes
-volumes:
-  loki_data:
-  promtail_positions:
-  prometheus_data:
-  #tempo_data:
-  grafana_data:

@@ -1,7 +1,5 @@
 client/scripts
-monitoring/scripts
-monitoring/playbooks
-loki
-tempo-data
-client_ips.json
 client-services
+monitoring/scripts
+client_ips.json
+data
