@@ -1,1 +1,5 @@
-tempo-data
+client/scripts
+client-services
+monitoring/scripts
+client_ips.json
+data

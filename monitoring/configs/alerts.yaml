@@ -1,0 +1,119 @@
+groups:
+- name: Server Monitoring
+  rules:
+  - alert: AlwaysFiring
+    expr: vector(1)
+    for: 0s
+    labels:
+      severity: critical
+    annotations:
+      summary: "This alert is always firing"
+      description: "This alert is designed to always be in a firing state for testing"  
+
+  - alert: CPUUsageAlert
+    expr: (100 - (avg by(instance) (rate(node_cpu_seconds_total{mode="idle"}[1m])) * 100)) > 80
+    for: 5m
+    labels:
+      severity: '{{ if gt $value 90.0 }}critical{{ else }}warning{{ end }}'
+    annotations:
+      summary: 'CPU Usage Alert on {{ $labels.instance }}'
+      description: 'CPU usage on {{ $labels.instance }} is {{ $value | printf "%.2f" }}% for more than 1 minutes'
+    
+  - alert: MemoryUsageAlert
+    expr: |
+      (node_memory_MemTotal_bytes - node_memory_MemAvailable_bytes) / node_memory_MemTotal_bytes * 100 > 80
+    for: 5m
+    labels:
+      severity: '{{ if gt $value 90.0 }}critical{{ else }}warning{{ end }}'
+    annotations:
+      summary: 'Memory Usage Alert on {{ $labels.instance }}'
+      description: 'Memory usage on {{ $labels.instance }} is {{ $value | printf "%.2f" }}% for more than 5 minutes'
+
+  - alert: DiskSpaceAlert
+    expr: |
+      100 - ((node_filesystem_avail_bytes{mountpoint="/"} * 100) / node_filesystem_size_bytes{mountpoint="/"}) > 80
+    for: 5m
+    labels:
+      severity: '{{ if gt $value 90.0 }}critical{{ else }}warning{{ end }}'
+    annotations:
+      summary: 'Disk Space Alert on {{ $labels.instance }}'
+      description: 'Disk space usage on {{ $labels.instance }} is {{ $value | printf "%.2f" }}% full'
+
+  - alert: DiskIOAlert
+    expr: |
+      rate(node_disk_io_time_seconds_total[5m]) * 100 > 80
+    for: 5m
+    labels:
+      severity: '{{ if gt $value 90.0 }}critical{{ else }}warning{{ end }}'
+    annotations:
+      summary: 'Disk I/O Alert on {{ $labels.instance }}'
+      description: 'Disk I/O utilization on {{ $labels.instance }} is {{ $value | printf "%.2f" }}% for more than 5 minutes'
+
+  - alert: NetworkThroughputAlert
+    expr: |
+      (sum by(instance) (rate(node_network_transmit_bytes_total[5m]) + rate(node_network_receive_bytes_total[5m]))) / node_network_speed_bytes > 0.7
+    for: 5m
+    labels:
+      severity: '{{ if gt $value 0.9 }}critical{{ else }}warning{{ end }}'
+    annotations:
+      summary: 'Network Throughput Alert on {{ $labels.instance }}'
+      description: 'Network throughput on {{ $labels.instance }} is {{ $value | printf "%.2f" }}% of max bandwidth for more than 5 minutes'
+
+  - alert: NetworkErrorRateAlert
+    expr: |
+      (sum by(instance) (rate(node_network_transmit_errs_total[5m]) + rate(node_network_receive_errs_total[5m]))) / (sum by(instance) (rate(node_network_transmit_packets_total[5m]) + rate(node_network_receive_packets_total[5m]))) > 0.01
+    for: 5m
+    labels:
+      severity: '{{ if gt $value 0.05 }}critical{{ else }}warning{{ end }}'
+    annotations:
+      summary: 'Network Error Rate Alert on {{ $labels.instance }}'
+      description: 'Network error rate on {{ $labels.instance }} is {{ $value | printf "%.2f" }}% for more than 5 minutes'
+
+  - alert: ServiceAvailabilityAlert
+    expr: |
+      100 - (avg(up) by (instance) * 100) > 1
+    for: 5m
+    labels:
+      severity: '{{ if gt $value 5.0 }}critical{{ else }}warning{{ end }}'
+    annotations:
+      summary: 'Service Availability Alert for {{ $labels.instance }}'
+      description: 'Overall service availability for {{ $labels.instance }} is {{ $value | printf "%.2f" }}% over the last 5 minutes'
+
+  - alert: JobSpecificAvailabilityAlert
+    expr: |
+      avg(up) by (job, instance) * 100 < 99
+    for: 5m
+    labels:
+      severity: '{{ if lt $value 95.0 }}critical{{ else }}warning{{ end }}'
+    annotations:
+      summary: 'Job-Specific Availability Alert for {{ $labels.job }} on {{ $labels.instance }}'
+      description: 'Service availability for {{ $labels.job }} on {{ $labels.instance }} is {{ $value | printf "%.2f" }}% over the last 5 minutes'
+
+  - alert: ResponseTimeAlert
+    expr: |
+      avg(avg_over_time(scrape_duration_seconds[5m])) by (instance) > 2
+    for: 5m
+    labels:
+      severity: '{{ if gt $value 5.0 }}critical{{ else }}warning{{ end }}'
+    annotations:
+      summary: 'Response Time Alert for {{ $labels.instance }}'
+      description: 'Average response time for {{ $labels.instance }} is {{ $value | printf "%.2f" }} seconds over the last 5 minutes'
+
+  - alert: ApplicationErrorRateAlert
+    expr: |
+      sum(rate(http_requests_total{job="your_service_job",status=~"5.."}[5m])) / sum(rate(http_requests_total{job="your_service_job"}[5m])) > 0.01
+    for: 5m
+    labels:
+      severity: '{{ if gt $value 0.05 }}critical{{ else }}warning{{ end }}'
+    annotations:
+      summary: 'Application Error Rate Alert for {{ $labels.job }} on {{ $labels.instance }}'
+      description: 'Error rate for {{ $labels.job }} on {{ $labels.instance }} is {{ $value | printf "%.2f" }}% of requests over the last 5 minutes'
+
+  - alert: ClientDown
+    expr: up == 0
+    for: 1m
+    labels:
+      severity: critical
+    annotations:
+      summary: "Client {{ $labels.instance }} is down"
+      description: "Prometheus target '{{ $labels.instance }}' has been down for more than 1 minute."

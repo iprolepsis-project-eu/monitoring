@@ -41,6 +41,7 @@ services:
       - /var/lib/docker/:/var/lib/docker:ro
       - /dev/disk/:/dev/disk:ro
       - /etc/machine-id:/etc/machine-id:ro
+      - /var/lib/dbus/machine-id:/var/lib/dbus/machine-id:ro
   
   #
   promtail:
@@ -50,7 +51,12 @@ services:
     container_name: plux-promtail
     depends_on:
       - node-exporter
-      - cadvisor 
+      - cadvisor
+    healthcheck:
+      test: wget --no-verbose --tries=1 --spider http://localhost:9080 || exit 1
+      interval: 30s
+      timeout: 10s
+      retries: 3  
     restart: unless-stopped
     # ports:
     #   - 9080:9080
@@ -73,23 +79,30 @@ services:
     depends_on:
       - node-exporter
       - cadvisor
+    healthcheck:
+      test: wget --no-verbose --tries=1 --spider http://localhost:13133 || exit 1
+      interval: 30s
+      timeout: 10s
+      retries: 3
     restart: unless-stopped
     ports:
       - "13133:13133"
       - "4317:4317" # OTLP receiver
       - "4318:4318" # OTLP receiver
     volumes:
-      - ./configs/otel-collector-config-ainigma.yaml:/etc/otel-collector-config-ainigma.yaml
-    command: ["--config=/etc/otel-collector-config-ainigma.yaml"]
+      - ./configs/otel-collector-config-nginx.yaml:/etc/otel-collector-config-nginx.yaml
+    command: ["--config=/etc/otel-collector-config-nginx.yaml"]
 
-  redis-exporter:
-    image: oliver006/redis_exporter:v1.66.0
-    container_name: redis-exporter
-    restart: unless-stopped
+  #
+  nginx-exporter:
+    image: nginx/nginx-prometheus-exporter:1.3.0
+    container_name: nginx-exporter
+    command: --nginx.scrape-uri=http://${HOST_PUBLIC_IP}:8081/stub_status
     ports:
-      - "9121:9121"
-    command:
-      - "--redis.addr=redis://${HOST_PUBLIC_IP}:6379"
+      - "9113:9113"   # Default port for NGINX Exporter
         
 volumes:
   promtail_positions:
+ 
+    
+
