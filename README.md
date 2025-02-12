@@ -76,7 +76,7 @@ Create a `.env` file inside the main directory where you copied the files (If yo
 Add the following enviornment variables:
 - `HOST_NAME=<NAME_HERE>` : Specify a name for the current system, it will be used to be easily recognizable in the grafana dashboards.
 - `HOST_PUBLIC_IP=<PUBLIC_IP_HERE>` : Update with the public IP address of the current system. This ensures that all the services are correctly configured to work with eachother.
-- `SERVER_MONITORING_PUBLIC_IP=<PUBLIC_IP_HERE>` : Update with the public IP address of the monitoring system. This ensures that the metrics/traces/logs are sent to the right place.
+- `SERVER_MONITORING_PUBLIC_IP=<PUBLIC_IP_HERE>` : Update with the public IP address of the monitoring system. This ensures that the metrics/traces/logs are sent to the right place. (Default is 5.75.190.25)
 
 ### 3. Start the Monitoring Containers
 
@@ -92,7 +92,7 @@ This command will start the monitoring containers in detached mode.
 
 ### 4. Access the Grafana Dashboard
 
-After running the command, the Grafana service will be open in `SERVER_MONITORING_PUBLIC_IP:3000` by the docker engine. 
+After running the command, the Grafana service will be open in `SERVER_MONITORING_PUBLIC_IP:3000` (![5.75.190.25:3000](5.75.190.25:3000)) by the docker engine. 
 
 You can access one of its dashboards to verify that the variables are set up. 
 - Home -> Dashboards -> General -> Node Exporter Full.
