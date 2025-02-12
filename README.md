@@ -92,7 +92,7 @@ This command will start the monitoring containers in detached mode.
 
 ### 4. Access the Grafana Dashboard
 
-After running the command, the Grafana service will be open in `SERVER_MONITORING_PUBLIC_IP:3000` (![5.75.190.25:3000](5.75.190.25:3000)) by the docker engine. 
+After running the command, the Grafana service will be open in `SERVER_MONITORING_PUBLIC_IP:3000` (![http://5.75.190.25:3000](http://5.75.190.25:3000)) by the docker engine. 
 
 You can access one of its dashboards to verify that the variables are set up. 
 - Home -> Dashboards -> General -> Node Exporter Full.
