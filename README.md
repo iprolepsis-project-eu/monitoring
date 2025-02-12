@@ -22,7 +22,7 @@ This repository provides a monitoring setup with instructions for both the monit
 - **Node Exporter** : Scrape metrics from the system itself
 - **CAdvisor** : Scrape metris from each running container
 - **OpenTelemetry Collector** : Collects all the metrics from itself and sends to the monitoring server 
-- **Promtail** : Groups logs from all containers into one adn sends to the monitoring server
+- **Promtail** : Groups logs from all containers into one and sends to the monitoring server
 
 ## Setup Instructions - Monitoring
 
