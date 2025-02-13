@@ -66,13 +66,13 @@ If your setup is correct, your `HOST_NAME` should be listed, and you should see 
 
 ## Setup Instructions - Intra
 
-This step by step guide is to configure the "base" version of our monitoring setup.
+This step-by-step guide configures the "base" version of our monitoring setup.
 
 This version contains:
-- **Node Exporter** : Scrape metrics from the system itself (%CPU, %RAM, %DISK, etc...)
-- **CAdvisor** : Scrape metris from each running container (%CPU, %RAM, %DISK, etc...)
-- **OpenTelemetry Collector** : Collects all the metrics and sends to the monitoring server 
-- **Promtail** : Groups logs from all containers (Possible experimental configuration to also group logs from the system itself) and sends to the monitoring server
+- **Node Exporter** : Scrape metrics from the system itself (%CPU, %RAM, %DISK, etc.)
+- **CAdvisor** : Scrape metris from each running container (%CPU, %RAM, %DISK, etc.)
+- **OpenTelemetry Collector** : Collects all the metrics and sends them to the monitoring server 
+- **Promtail** : Groups logs from all containers and sends to the monitoring server
 
 ### 1. Copy Files to Your Repository
 
@@ -82,7 +82,7 @@ The important files are:
 - `docker-compsoe-simple.yml` : The docker compose file that will be used
 - `configs/otel-collector-config-simple.yaml` : OpenTelemetry Collector's config
 - `configs/promtail-config.yaml` : Promtail's config
-- `.env` : File with enviornment variables that will be used by all of the above
+- `.env` : File with environment variables that will be used by all of the above
 
 ### 2. Update Configuration
 
