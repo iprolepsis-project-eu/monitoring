@@ -64,6 +64,57 @@ If your setup is correct, your `HOST_NAME` should be listed, and you should see 
 
 
 
+## Setup Instructions - Intra
+
+This step by step guide is to configure the "base" version of our monitoring setup.
+
+This version contains:
+- **Node Exporter** : Scrape metrics from the system itself (%CPU, %RAM, %DISK, etc...)
+- **CAdvisor** : Scrape metris from each running container (%CPU, %RAM, %DISK, etc...)
+- **OpenTelemetry Collector** : Collects all the metrics and sends to the monitoring server 
+- **Promtail** : Groups logs from all containers (Possible experimental configuration to also group logs from the system itself) and sends to the monitoring server
+
+### 1. Copy Files to Your Repository
+
+Copy the files located inside the `client` folder of this repository to the corresponding location in your repository.
+
+The important files are:
+- `docker-compsoe-simple.yml` : The docker compose file that will be used
+- `config/otel-collector-config-simple.yaml` : OpenTelemetry Collector's config
+- `config/promtail-config.yaml` : Promtail's config
+- `.env` : File with enviornment variables that will be used by all of the above
+
+### 2. Update Configuration
+
+A `.env` file is already included in the repository. Open it and update the following environment variables:
+- `HOST_NAME=<NAME_HERE>` : Specify a name for the current system, it will be used to be easily recognizable in the grafana dashboards.
+- `HOST_PUBLIC_IP=<PUBLIC_IP_HERE>` : Update with the public IP address of the current system. This ensures that all the services are correctly configured to work with eachother.
+- `SERVER_MONITORING_PUBLIC_IP=<PUBLIC_IP_HERE>` : (Default is 5.75.190.25 and should not be needed to change) Update with the public IP address of the monitoring system. This ensures that the metrics/traces/logs are sent to the right place.
+
+### 3. Start the Monitoring Containers
+
+To test the monitoring setup, navigate to the directory containing `docker-compose-simple.yml` and run:
+
+```bash
+docker compose -f docker-compose-simple.yml up -d
+```
+(If docker engine is running through docker desktop, make sure that the setting `Use containerd for pulling and storing images` is not checked)
+
+This command will start the monitoring containers in detached mode.
+
+### 4. Access the Grafana Dashboard
+
+After running the command, the Grafana service will be open in `SERVER_MONITORING_PUBLIC_IP:3000` ([http://5.75.190.25:3000](http://5.75.190.25:3000)) by the docker engine. 
+
+You can access one of its dashboards to verify that the variables are set up. 
+- Home -> Dashboards -> General -> Node Exporter Full.
+
+![Grafana Dashboard](dashboard.png)
+
+If your setup is correct, your `HOST_NAME` should be listed, and you should see various metrics and visualizations related to your system's performance.
+
+
+
 ## Setup Instructions - Client
 
 ### 1. Copy Files to Your Repository
