@@ -79,7 +79,7 @@ This version contains:
 Copy the files located inside the `client` folder of this repository to the corresponding location in your repository.
 
 The important files are:
-- `docker-compsoe-simple.yml` : The docker compose file that will be used
+- `docker-compose-simple.yml` : The docker compose file that will be used
 - `configs/otel-collector-config-simple.yaml` : OpenTelemetry Collector's config
 - `configs/promtail-config.yaml` : Promtail's config
 - `.env` : File with environment variables that will be used by all of the above
