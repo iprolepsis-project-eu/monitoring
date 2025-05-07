@@ -101,7 +101,7 @@ services:
     ports:
       - 9216:9216
     command:
-      - "--mongodb.uri=mongodb://${HOST_PUBLIC_IP}:27017"
+      - "--mongodb.uri=mongodb://<GIVE-NAME-HERE>:<GIVE-PWD-HERE>${HOST_PUBLIC_IP}:27017"
       - "--compatible-mode"
       - "--collect-all"
         
