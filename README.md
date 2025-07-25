@@ -26,3 +26,6 @@ This repository contains a complete infrastructure monitoring solution built wit
 - **Promtail**: Log shipping to Loki
 - **System Monitoring**: Node exporter, cAdvisor, and custom exporters
 - **Application Monitoring**: Custom metrics endpoints
+
+### Setup Instructions
+Setup instructions inside their respective directories

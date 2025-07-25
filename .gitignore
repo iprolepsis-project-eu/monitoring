@@ -2,3 +2,5 @@ lost+found
 dozzle
 monitoring/data/*
 monitoring/scripts
+client/example/config/otel
+client/example/config/promtail

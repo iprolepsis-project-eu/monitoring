@@ -1,11 +1,11 @@
-name: iprolepsis-auth
+name: iprolepsis-test-client
 
 services:
 
 # Metrics collection
   cadvisor:
     image: gcr.io/cadvisor/cadvisor:v0.52.0
-    container_name: cadvisor
+    container_name: test-cadvisor
     restart: unless-stopped
     volumes:
       - /:/rootfs:ro
@@ -19,7 +19,7 @@ services:
 
   node-exporter:
     image: quay.io/prometheus/node-exporter:latest
-    container_name: node-exporter
+    container_name: test-node-exporter
     restart: unless-stopped
     volumes:
       - /:/host:ro,rslave
@@ -30,7 +30,7 @@ services:
 # Metrics
   otel-collector:
     image: otel/opentelemetry-collector-contrib:latest
-    container_name: otel-collector
+    container_name: test-otel-collector
     restart: unless-stopped
     volumes:
        - ./config/otel-collector-config.yaml:/etc/otelcol-contrib/config.yaml  
@@ -40,7 +40,7 @@ services:
 # Logs
   promtail:
     image: grafana/promtail:latest
-    container_name: promtail
+    container_name: test-promtail
     restart: unless-stopped
     volumes:
       - ./config/promtail-config.yaml:/etc/promtail/promtail-config.yaml
