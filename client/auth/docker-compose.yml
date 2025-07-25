@@ -1,0 +1,56 @@
+name: iprolepsis-auth
+
+services:
+
+# Metrics collection
+  cadvisor:
+    image: gcr.io/cadvisor/cadvisor:v0.52.0
+    container_name: cadvisor
+    restart: unless-stopped
+    volumes:
+      - /:/rootfs:ro
+      - /var/run:/var/run:ro
+      - /sys:/sys:ro
+      - /var/lib/docker/:/var/lib/docker:ro
+      - /dev/disk/:/dev/disk:ro
+    privileged: true
+    devices:
+      - /dev/kmsg
+
+  node-exporter:
+    image: quay.io/prometheus/node-exporter:latest
+    container_name: node-exporter
+    restart: unless-stopped
+    volumes:
+      - /:/host:ro,rslave
+    pid: host
+    command:
+      - --path.rootfs=/host
+    
+# Metrics
+  otel-collector:
+    image: otel/opentelemetry-collector-contrib:latest
+    container_name: otel-collector
+    restart: unless-stopped
+    volumes:
+       - ./config/otel/otel-collector-config.yaml:/etc/otelcol-contrib/config.yaml  
+    env_file:
+      - .env
+
+# Logs
+  promtail:
+    image: grafana/promtail:latest
+    container_name: promtail
+    restart: unless-stopped
+    volumes:
+      - ./config/promtail/promtail-config.yaml:/etc/promtail/promtail-config.yaml
+      - /var/log:/var/log
+      - /var/run/docker.sock:/var/run/docker.sock
+    env_file:
+      - .env
+    command: 
+      - --config.file=/etc/promtail/promtail-config.yaml
+      - --config.expand-env=true
+
+# Others
+      

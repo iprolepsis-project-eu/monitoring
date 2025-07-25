@@ -1,0 +1,49 @@
+receivers:
+  prometheus:
+    config:
+      scrape_configs:
+      - job_name: 'node-exporter'
+        scrape_interval: 15s
+        static_configs:
+          - targets: ['node-exporter:9100']
+        relabel_configs:
+          - source_labels: [__address__]
+            regex: 'node-exporter:9100'
+            target_label: instance
+            replacement: '${HOST_NAME}'
+            
+      - job_name: 'cadvisor'
+        scrape_interval: 15s
+        static_configs:
+          - targets: ['cadvisor:8080']
+        relabel_configs:
+          - source_labels: [__address__]
+            regex: 'cadvisor:8080'
+            target_label: instance
+            replacement: '${HOST_NAME}'
+
+      # Others
+
+processors:
+  batch:
+
+exporters:
+  prometheusremotewrite:
+    endpoint: http://${SERVER_MONITORING_PUBLIC_IP}:9090/api/v1/write
+    tls:
+      insecure: true
+
+extensions:
+  health_check:
+    endpoint: 0.0.0.0:13133
+    path: "/ready"
+
+service:
+  extensions: [health_check]
+
+  pipelines:
+    metrics:
+      receivers: [prometheus]
+      processors: [batch]
+      exporters: [prometheusremotewrite]
+      

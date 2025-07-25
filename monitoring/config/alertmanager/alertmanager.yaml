@@ -1,0 +1,119 @@
+global:
+  # The smarthost and SMTP sender used for mail notifications.
+  # smtp_smarthost: 'localhost:25'
+  # smtp_from: 'alertmanager@example.org'
+  resolve_timeout: 5m
+
+# The root route on which each incoming alert enters.
+route:
+  receiver: 'gmail-notifications' # This will be the default if no other routes match
+  group_by: ['service', 'alertname']
+  group_wait: 30s
+  group_interval: 5m
+  repeat_interval: 4h
+
+  routes:
+    # New routes for your specific services
+    - receiver: 'ainigma-contact'
+      matchers:
+        - service="Ainigma"
+
+    - receiver: 'wellics-contact'
+      matchers:
+        - service="WELLICS"
+
+    - receiver: 'auth-contact'
+      matchers:
+        - service="Auth"
+
+    - receiver: 'intra-contact'
+      matchers:
+        - service="Intra"
+      repeat_interval: 12h
+
+    - receiver: 'monitoringserver-contact'
+      matchers:
+        - service="MonitoringServer"
+
+# Inhibition rules allow to mute a set of alerts given that another alert is
+# firing.
+# We use this to mute any warning-level notifications if the same alert is
+# already critical.
+# inhibit_rules:
+# - source_matchers:
+#     - severity="critical"
+#   target_matchers:
+#     - severity="warning"
+#   # Apply inhibition if the alertname is the same.
+#   # CAUTION: 
+#   #   If all label names listed in `equal` are missing 
+#   #   from both the source and target alerts,
+#   #   the inhibition rule will apply!
+#   equal: ['alertname']
+
+receivers:
+- name: 'gmail-notifications' # This is your default/fallback receiver
+  email_configs:
+  - to: fcardoso@pluxbiosignals.com
+    from: fcardoso@pluxbiosignals.com # Use a consistent from address
+    smarthost: smtp.gmail.com:587
+    auth_username: fcardoso@pluxbiosignals.com
+    auth_identity: fcardoso@pluxbiosignals.com
+    auth_password: cvuc erga xbad yhsv # Consider using secrets management for passwords
+    send_resolved: true
+    
+- name: 'ainigma-contact'
+  msteamsv2_configs:
+  - webhook_url: https://prod-81.westeurope.logic.azure.com/workflows/541b599e91c84d1d82cc76fabd76a95c/triggers/manual/paths/invoke?api-version=2016-06-01&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=SvGulSlbkCb21zzQwhiHbQPLi1E75MS_S4gNDh9WuNE
+
+  email_configs:
+  - to: fcardoso@pluxbiosignals.com
+    from: fcardoso@pluxbiosignals.com
+    smarthost: smtp.gmail.com:587
+    auth_username: fcardoso@pluxbiosignals.com
+    auth_identity: fcardoso@pluxbiosignals.com
+    auth_password: cvuc erga xbad yhsv
+    send_resolved: true
+
+- name: 'wellics-contact'
+  slack_configs:
+  - api_url: https://hooks.slack.com/services/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
+
+  email_configs:
+  - to: fcardoso@pluxbiosignals.com
+    from: fcardoso@pluxbiosignals.com
+    smarthost: smtp.gmail.com:587
+    auth_username: fcardoso@pluxbiosignals.com
+    auth_identity: fcardoso@pluxbiosignals.com
+    auth_password: cvuc erga xbad yhsv
+    send_resolved: true
+
+- name: 'auth-contact'
+  email_configs:
+  - to: 'assos-developer@imedphys.med.auth.gr, fcardoso@pluxbiosignals.com'
+    from: fcardoso@pluxbiosignals.com
+    smarthost: smtp.gmail.com:587
+    auth_username: fcardoso@pluxbiosignals.com
+    auth_identity: fcardoso@pluxbiosignals.com
+    auth_password: cvuc erga xbad yhsv
+    send_resolved: true
+
+- name: 'intra-contact'
+  email_configs:
+  - to: 'iprolepsis.intra@gmail.com, Nikoleta.TSAMPANAKI@netcompany.com, fcardoso@pluxbiosignals.com'
+    from: fcardoso@pluxbiosignals.com
+    smarthost: smtp.gmail.com:587
+    auth_username: fcardoso@pluxbiosignals.com
+    auth_identity: fcardoso@pluxbiosignals.com
+    auth_password: cvuc erga xbad yhsv
+    send_resolved: true
+
+- name: 'monitoringserver-contact'
+  email_configs:
+  - to: 'rbraga@pluxbiosignals.com, fcardoso@pluxbiosignals.com'
+    from: fcardoso@pluxbiosignals.com
+    smarthost: smtp.gmail.com:587
+    auth_username: fcardoso@pluxbiosignals.com
+    auth_identity: fcardoso@pluxbiosignals.com
+    auth_password: cvuc erga xbad yhsv
+    send_resolved: true

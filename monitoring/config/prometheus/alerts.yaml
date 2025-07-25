@@ -1,0 +1,231 @@
+groups:
+- name: Ainigma
+  rules:
+  - alert: Server Down
+    expr: absent(up{instance="ainigma-environmental-service",job="node-exporter"}) == 1 or up{instance="ainigma-environmental-service",job="node-exporter"} == 0
+    for: 1m
+    labels:
+      severity: critical
+      service: Ainigma
+    annotations:
+      summary: "Ainigma's server is down"
+      description: "Prometheus target '{{ $labels.instance }}' has been down for more than 1 minute."
+
+  - alert: High CPU Usage
+    expr: (100 - (avg by(instance) (rate(node_cpu_seconds_total{mode="idle", instance="ainigma-environmental-service"}[1m])) * 100)) > 80
+    for: 5m
+    labels:
+      severity: '{{ if gt $value 90.0 }}critical{{ else }}warning{{ end }}'
+      service: Ainigma
+    annotations:
+      summary: "High CPU usage on Ainigma's server"
+      description: 'CPU usage on {{ $labels.instance }} is {{ $value | printf "%.2f" }}% for more than 5 minutes'
+
+  - alert: High Memory Usage
+    expr: (node_memory_MemTotal_bytes{instance="ainigma-environmental-service"} - node_memory_MemAvailable_bytes{instance="ainigma-environmental-service"}) / node_memory_MemTotal_bytes{instance="ainigma-environmental-service"} * 100 > 80
+    for: 5m
+    labels:
+      severity: '{{ if gt $value 90.0 }}critical{{ else }}warning{{ end }}'
+      service: Ainigma
+    annotations:
+      summary: "High Memory usage on Ainigma's server"
+      description: 'Memory usage on {{ $labels.instance }} is {{ $value | printf "%.2f" }}% for more than 5 minutes'
+  
+  - alert: High Disk Space Usage
+    expr: (node_filesystem_size_bytes{mountpoint="/", instance="ainigma-environmental-service"} - node_filesystem_free_bytes{mountpoint="/", instance="ainigma-environmental-service"}) / node_filesystem_size_bytes{mountpoint="/", instance="ainigma-environmental-service"} * 100 > 50
+    for: 5m
+    labels:
+      severity: '{{ if gt $value 50.0 }}critical{{ else }}warning{{ end }}'
+      service: Ainigma
+    annotations:
+      summary: "High Disk Space usage on Ainigma's server"
+      description: 'Disk space usage on {{ $labels.instance }} is {{ $value | printf "%.2f" }}% for more than 5 minutes'
+
+- name: WELLICS
+  rules:
+  - alert: Server Down
+    expr: absent(up{instance="WELLICS_DEV_SERVICES",job="node-exporter"}) == 1 or up{instance="WELLICS_DEV_SERVICES",job="node-exporter"} == 0
+    for: 1m
+    labels:
+      severity: critical
+      service: WELLICS
+    annotations:
+      summary: "WELLICS' server is down"
+      description: "Prometheus target '{{ $labels.instance }}' has been down for more than 1 minute."
+
+  - alert: High CPU Usage
+    expr: (100 - (avg by(instance) (rate(node_cpu_seconds_total{mode="idle", instance="WELLICS_DEV_SERVICES"}[1m])) * 100)) > 80
+    for: 5m
+    labels:
+      severity: '{{ if gt $value 90.0 }}critical{{ else }}warning{{ end }}'
+      service: WELLICS
+    annotations:
+      summary: "High CPU usage on WELLICS' server"
+      description: 'CPU usage on {{ $labels.instance }} is {{ $value | printf "%.2f" }}% for more than 5 minutes'
+
+  - alert: High Memory Usage
+    expr: (node_memory_MemTotal_bytes{instance="WELLICS_DEV_SERVICES"} - node_memory_MemAvailable_bytes{instance="WELLICS_DEV_SERVICES"}) / node_memory_MemTotal_bytes{instance="WELLICS_DEV_SERVICES"} * 100 > 80
+    for: 5m
+    labels:
+      severity: '{{ if gt $value 90.0 }}critical{{ else }}warning{{ end }}'
+      service: WELLICS
+    annotations:
+      summary: "High Memory usage on WELLICS' server"
+      description: 'Memory usage on {{ $labels.instance }} is {{ $value | printf "%.2f" }}% for more than 5 minutes'
+
+  - alert: High Disk Space Usage
+    expr: (node_filesystem_size_bytes{mountpoint="/", instance="WELLICS_DEV_SERVICES"} - node_filesystem_free_bytes{mountpoint="/", instance="WELLICS_DEV_SERVICES"}) / node_filesystem_size_bytes{mountpoint="/", instance="WELLICS_DEV_SERVICES"} * 100 > 80
+    for: 5m
+    labels:
+      severity: '{{ if gt $value 90.0 }}critical{{ else }}warning{{ end }}'
+      service: WELLICS
+    annotations:
+      summary: "High Disk Space usage on WELLICS' server"
+      description: 'Disk space usage on {{ $labels.instance }} is {{ $value | printf "%.2f" }}% for more than 5 minutes'
+
+  - alert: Container Down
+    expr: time() - container_last_seen{job="cadvisor", instance="WELLICS_DEV_SERVICES", image!="", name!=""} > 300
+    for: 1m
+    labels:
+      severity: critical
+      service: WELLICS
+      container_name: '{{ $labels.name }}'
+    annotations:
+      summary: "Container {{ $labels.name }} on WELLICS server is down"
+      description: "Container '{{ $labels.name }}' on instance '{{ $labels.instance }}' has not been seen for more than 5 minutes."
+
+- name: Auth
+  rules:
+  - alert: Server Down
+    expr: absent(up{instance="SSO-Keycloak",job="node-exporter"}) == 1 or up{instance="SSO-Keycloak",job="node-exporter"} == 0
+    for: 1m
+    labels:
+      severity: critical
+      service: Auth
+    annotations:
+      summary: "Auth server is down"
+      description: "Prometheus target '{{ $labels.instance }}' has been down for more than 1 minute."
+
+  - alert: High CPU Usage
+    expr: (100 - (avg by(instance) (rate(node_cpu_seconds_total{mode="idle", instance="SSO-Keycloak"}[1m])) * 100)) > 80
+    for: 5m
+    labels:
+      severity: '{{ if gt $value 90.0 }}critical{{ else }}warning{{ end }}'
+      service: Auth
+    annotations:
+      summary: "High CPU usage on Auth server"
+      description: 'CPU usage on {{ $labels.instance }} is {{ $value | printf "%.2f" }}% for more than 5 minutes'
+
+  - alert: High Memory Usage
+    expr: (node_memory_MemTotal_bytes{instance="SSO-Keycloak"} - node_memory_MemAvailable_bytes{instance="SSO-Keycloak"}) / node_memory_MemTotal_bytes{instance="SSO-Keycloak"} * 100 > 80
+    for: 5m
+    labels:
+      severity: '{{ if gt $value 90.0 }}critical{{ else }}warning{{ end }}'
+      service: Auth
+    annotations:
+      summary: "High Memory usage on Auth server"
+      description: 'Memory usage on {{ $labels.instance }} is {{ $value | printf "%.2f" }}% for more than 5 minutes'
+
+  - alert: High Disk Space Usage
+    expr: (node_filesystem_size_bytes{mountpoint="/", instance="SSO-Keycloak"} - node_filesystem_free_bytes{mountpoint="/", instance="SSO-Keycloak"}) / node_filesystem_size_bytes{mountpoint="/", instance="SSO-Keycloak"} * 100 > 80
+    for: 5m
+    labels:
+      severity: '{{ if gt $value 90.0 }}critical{{ else }}warning{{ end }}'
+      service: Auth
+    annotations:
+      summary: "High Disk Space usage on Auth server"
+      description: 'Disk space usage on {{ $labels.instance }} is {{ $value | printf "%.2f" }}% for more than 5 minutes'
+
+- name: Intra
+  rules:
+  - alert: Mongo Server 1 Down
+    expr: absent(up{instance="mongo-server-1",job="node-exporter"}) == 1 or up{instance="mongo-server-1",job="node-exporter"} == 0
+    for: 1m
+    labels:
+      severity: critical
+      service: Intra
+    annotations:
+      summary: "Intra's Mongo Server 1 is down"
+      description: "Prometheus target '{{ $labels.instance }}' has been down for more than 1 minute."
+
+  - alert: Mongo Server 2 Down
+    expr: absent(up{instance="mongo-server-2",job="node-exporter"}) == 1 or up{instance="mongo-server-2",job="node-exporter"} == 0
+    for: 1m
+    labels:
+      severity: critical
+      service: Intra
+    annotations:
+      summary: "Intra's Mongo Server 2 is down"
+      description: "Prometheus target '{{ $labels.instance }}' has been down for more than 1 minute."
+
+  - alert: Mongo Server 3 Down
+    expr: absent(up{instance="mongo-server-3",job="node-exporter"}) == 1 or up{instance="mongo-server-3",job="node-exporter"} == 0
+    for: 1m
+    labels:
+      severity: critical
+      service: Intra
+    annotations:
+      summary: "Intra's Mongo Server 3 is down"
+      description: "Prometheus target '{{ $labels.instance }}' has been down for more than 1 minute."
+
+  - alert: DMS API Service Down
+    expr: absent(up{instance="dms-api-service",job="node-exporter"}) or up{instance="dms-api-service",job="node-exporter"} == 0
+    for: 1m
+    labels:
+      severity: critical
+      service: Intra
+    annotations:
+      summary: "Intra's DMS API Service is down"
+      description: "Prometheus target '{{ $labels.instance }}' has been down for more than 1 minute."
+
+  - alert: Prod MinIO Server Down
+    expr: absent(up{instance="prod-minio-server",job="node-exporter"}) == 1 or up{instance="prod-minio-server",job="node-exporter"} == 0
+    for: 1m
+    labels:
+      severity: critical
+      service: Intra
+    annotations:
+      summary: "Intra's Prod MinIO Server is down"
+      description: "Prometheus target '{{ $labels.instance }}' has been down for more than 1 minute."
+
+- name: Monitoring Server
+  rules:
+  # - alert: Always Firing
+  #   expr: vector(1)
+  #   for: 0s
+  #   labels:
+  #     severity: critical
+  #     service: MonitoringServer
+  #   annotations:
+  #     summary: "This alert is always firing"
+  #     description: "This alert is designed to always be in a firing state for testing"
+
+  - alert: High CPU Usage
+    expr: (100 - (avg by(instance) (rate(node_cpu_seconds_total{mode="idle", instance="MonitoringServer"}[1m])) * 100)) > 80
+    for: 5m
+    labels:
+      severity: '{{ if gt $value 90.0 }}critical{{ else }}warning{{ end }}'
+      service: MonitoringServer
+    annotations:
+      summary: "High CPU usage on Monitoring Server"
+      description: 'CPU usage on {{ $labels.instance }} is {{ $value | printf "%.2f" }}% for more than 5 minutes'
+
+  - alert: High Memory Usage
+    expr: (node_memory_MemTotal_bytes{instance="MonitoringServer"} - node_memory_MemAvailable_bytes{instance="MonitoringServer"}) / node_memory_MemTotal_bytes{instance="MonitoringServer"} * 100 > 80
+    for: 5m
+    labels:
+      severity: '{{ if gt $value 90.0 }}critical{{ else }}warning{{ end }}'
+      service: MonitoringServer
+    annotations:
+      summary: "High Memory usage on Monitoring Server"
+      description: 'Memory usage on {{ $labels.instance }} is {{ $value | printf "%.2f" }}% for more than 5 minutes'
+
+  - alert: High Disk Space Usage
+    expr: (node_filesystem_size_bytes{mountpoint="/", instance="MonitoringServer"} - node_filesystem_free_bytes{mountpoint="/", instance="MonitoringServer"}) / node_filesystem_size_bytes{mountpoint="/", instance="MonitoringServer"} * 100 > 80
+    for: 5m
+    labels:
+      severity: '{{ if gt $value 90.0 }}critical{{ else }}warning{{ end }}'
+      service: MonitoringServer
+    annotations:
+      summary: "High Disk Space usage on Monitoring Server"
+      description: 'Disk space usage on {{ $labels.instance }} is {{ $value | printf "%.2f" }}% for more than 5 minutes'

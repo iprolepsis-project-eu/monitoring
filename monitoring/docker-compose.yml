@@ -1,0 +1,135 @@
+name: iprolepsis-monitoring
+
+services:
+
+# Metrics collection
+  cadvisor:
+    image: gcr.io/cadvisor/cadvisor:v0.52.0
+    container_name: cadvisor
+    restart: unless-stopped
+    volumes:
+      - /:/rootfs:ro
+      - /var/run:/var/run:ro
+      - /sys:/sys:ro
+      - /var/lib/docker/:/var/lib/docker:ro
+      - /dev/disk/:/dev/disk:ro
+    privileged: true
+    devices:
+      - /dev/kmsg
+
+  node-exporter:
+    image: quay.io/prometheus/node-exporter:latest
+    container_name: node-exporter
+    restart: unless-stopped
+    volumes:
+      - /:/host:ro,rslave
+    pid: host
+    command:
+      - --path.rootfs=/host
+
+# Metrics
+  otel-collector:
+    image: otel/opentelemetry-collector-contrib:latest
+    container_name: otel-collector
+    user: "1004:1005"
+    restart: unless-stopped
+    volumes:
+       - ./config/otel/otel-collector-config.yaml:/etc/otelcol-contrib/config.yaml
+    ports:
+    - 4317:4317  
+    - 4318:4318  
+    env_file:
+      - .env
+    depends_on:
+      - prometheus
+
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: prometheus
+    user: "1004:1005"
+    restart: unless-stopped
+    volumes:
+      - ./config/prometheus/prometheus.yaml:/etc/prometheus/prometheus.yml
+      - ./config/prometheus/alerts.yaml:/etc/prometheus/alerts.yaml
+      - ./data/prometheus:/prometheus
+    ports:
+      - 9090:9090
+    env_file:
+      - .env
+    depends_on:
+      - node-exporter
+      - cadvisor
+      - alertmanager
+    command:
+      - --config.file=/etc/prometheus/prometheus.yml
+      - --web.enable-otlp-receiver
+      - --web.enable-remote-write-receiver
+      - --storage.tsdb.retention.time=180d
+      - --web.external-url=http://${HOST_PUBLIC_IP}:9090
+    
+# Alerts
+  alertmanager:
+    image: prom/alertmanager:latest
+    container_name: alertmanager
+    user: "1004:1005"
+    restart: unless-stopped
+    volumes:
+      - ./config/alertmanager/alertmanager.yaml:/etc/alertmanager/alertmanager.yaml
+      - ./data/alertmanager:/alertmanager
+    ports:
+      - 9093:9093
+    env_file:
+      - .env
+    command:
+      - --config.file=/etc/alertmanager/alertmanager.yaml
+      - --storage.path=/alertmanager
+      - --web.external-url=http://${HOST_PUBLIC_IP}:9093
+       
+# Logs
+  loki:
+    image: grafana/loki:latest
+    container_name: loki
+    user: "1004:1005"
+    restart: unless-stopped
+    volumes: 
+      - ./config/loki/loki-config.yaml:/etc/loki/config.yaml
+      - ./data/loki:/loki
+    ports:
+      - 3100:3100
+    command: 
+      - -config.file=/etc/loki/config.yaml
+      - --config.expand-env=true
+
+  promtail:
+    image: grafana/promtail:latest
+    container_name: promtail
+    user: "1004:999"
+    restart: unless-stopped
+    volumes:
+      - ./config/promtail/promtail-config.yaml:/etc/promtail/promtail-config.yaml
+      - /var/log:/var/log
+      - /var/run/docker.sock:/var/run/docker.sock
+    env_file:
+      - .env
+    depends_on:
+      - loki
+    command: 
+      - --config.file=/etc/promtail/promtail-config.yaml
+      - --config.expand-env=true
+
+# Visualization
+  grafana:
+    image: grafana/grafana:latest
+    container_name: grafana
+    user: "1004:1005"
+    restart: unless-stopped
+    volumes:
+      - ./data/grafana:/var/lib/grafana
+      - ./config/grafana/provisioning:/etc/grafana/provisioning
+      - ./config/grafana/dashboards:/var/lib/grafana/dashboards
+    ports:
+     - 3000:3000
+    environment:
+      - GF_AUTH_ANONYMOUS_ENABLED=true
+      - GF_AUTH_ANONYMOUS_ORG_ROLE=Admin
+      - GF_AUTH_DISABLE_LOGIN_FORM=true
