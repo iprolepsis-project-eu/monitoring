@@ -18,8 +18,8 @@ This repository contains a complete infrastructure monitoring solution built wit
 - **Prometheus**: Metrics storage and querying
 - **Grafana**: Visualization and dashboards
 - **Loki**: Log aggregation and search
-<!-- - **Tempo**: Distributed tracing -->
 - **Alertmanager**: Alert routing and management
+<!-- - **Tempo**: Distributed tracing -->
 
 ### Client Setup (`/client`)
 - **OpenTelemetry Collector**: Metrics collection and forwarding
