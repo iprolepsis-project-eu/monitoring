@@ -31,13 +31,13 @@ Preserve all existing environment variables from your old setup:
 
 ```bash
 # Navigate to your old setup directory
-cd /path/to/old/setup
+cd /path/to/old/setup/
 
 # Backup and compare existing .env values
 cp .env .env.old.backup
 
 # Navigate to new client directory
-cd /path/to/new/setup
+cd /path/to/new/setup/
 
 # Copy old values to new .env, ensuring no variables are lost
 cp /path/to/old/setup/.env .env
@@ -54,7 +54,7 @@ Verify that any extra modifications made to the old Docker Compose file and the 
 
 ```bash
 # Navigate to old setup and stop all services
-cd /path/to/old/setup
+cd /path/to/old/setup/
 
 # Stop services gracefully
 docker compose down 
@@ -72,7 +72,7 @@ docker ps -a | grep "Exited"
 
 ```bash
 # Navigate to new client directory
-cd /path/to/new/setup
+cd /path/to/new/setup/
 
 # Start all services
 docker compose up -d
