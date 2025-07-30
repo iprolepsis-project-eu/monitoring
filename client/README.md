@@ -37,7 +37,7 @@ cd /path/to/old/setup
 cp .env .env.old.backup
 
 # Navigate to new client directory
-cd /path/to/new/setup (client/<client-name>)
+cd /path/to/new/setup
 
 # Copy old values to new .env, ensuring no variables are lost
 cp /path/to/old/setup/.env .env
@@ -72,7 +72,7 @@ docker ps -a | grep "Exited"
 
 ```bash
 # Navigate to new client directory
-cd /path/to/new/setup (client/<client-name>)
+cd /path/to/new/setup
 
 # Start all services
 docker compose up -d
