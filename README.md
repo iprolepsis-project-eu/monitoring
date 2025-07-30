@@ -27,5 +27,5 @@ This repository contains a complete infrastructure monitoring solution built wit
 - **System Monitoring**: Node exporter, cAdvisor, and custom exporters
 - **Application Monitoring**: Custom metrics endpoints
 
-### Setup Instructions
+## Setup Instructions
 Setup instructions inside their respective directories
