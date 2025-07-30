@@ -3,6 +3,28 @@
 
 If you're currently running an older version of this monitoring setup, follow these steps to upgrade:
 
+### 0. Create New Setup Directory and Download Required Files
+
+Set up the new monitoring configuration structure:
+
+```bash
+# Create new setup directory
+mkdir -p /path/to/new/setup/
+cd /path/to/new/setup/
+
+# Download the following files form the GitHub repo to the created directory
+client/<client-name>/docker-compose.yml
+client/<client-name>/.env
+
+# Create new setup config directory
+mkdir -p /path/to/new/setup/config
+cd /path/to/new/setup/config
+
+# Download the following files form the GitHub repo to the created directory
+client/<client-name>/config/otel-collectorconfig.yaml
+client/<client-name>/config/promtail-config.yaml
+```
+
 ### 1. Ensure New .env File Has Same Values as Old .env
 
 Preserve all existing environment variables from your old setup:
